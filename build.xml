@@ -1,0 +1,102 @@
+<project name="liga_siatkowki" default="help">
+
+	<!-- stałe -->
+	
+	<property name="mainClass" value="liga.main.Main"/> 
+	<property name="sources" value="src"/>
+	<property name="classes" value="bin"/>
+	<property name="jars" value="dist"/>
+	<property name="jarName" value="${ant.project.name}"/>
+	<property name="reports.tests" value="test_reports"/>
+	
+	<!-- ścieżki -->
+	
+<!--
+	<path id="classpath.compile">
+		<pathelement location="lib/junit-4.11.jar"/>
+	</path>
+
+-->	
+	<path id="classpath.compile">
+		<pathelement location="lib/junit-4.11.jar"/>
+	</path>	
+
+	<path id="classpath.run">
+  	<pathelement location="${classes}"/>
+  	<pathelement location="lib/hsqldb.jar"/>
+	</path>
+	
+	<path id="classpath.test">
+		<path refid="classpath.run"/>
+		<pathelement location="lib/junit-4.11.jar"/>
+	</path>
+	
+	<!-- targety -->
+	
+	<target name="help">
+		<echo message="Witaj ${user.name}.${line.separator}
+		To jest projekt ${ant.project.name}${line.separator}
+		Aby go uruchomić użyj polecenia: ant run${line.separator}
+		Aby zobaczyć listę targetów użyj: ant -p"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="${classes}"/>
+		<delete dir="${jars}"/>
+		<delete dir="${reports.tests}"/>
+	</target>
+	
+	<target name="init">
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${jars}"/>
+		<mkdir dir="${reports.tests}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac destdir="${classes}" srcdir="${sources}" 			includeantruntime="true"
+			classpathref="classpath.compile" />
+	</target>
+
+	<target name="run" depends="compile">
+		<java classpathref="classpath.run" classname="${mainClass}"/>
+	</target>
+	
+	<target name="rebuild" depends="clean,compile"/>
+	
+	<target name="makeExecJar" depends="compile">
+		<jar destfile="${jars}/${jarName}.jar" basedir="${classes}">
+			<manifest>
+				<attribute name="Main-Class" value="${mainClass}"/>
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="runJar" depends="makeExecJar">
+		<java jar="${jars}/${jarName}.jar" fork="true"/>
+	</target>
+	
+	<target name="runHSQLserver">
+		<exec executable="script/runHSQLDBServer.sh"/>
+	</target>
+
+	<target name="runHSQLclient">
+		<exec executable="script/runHSQLDBClient.sh"/>
+	</target>
+
+	<target name="test">
+		<junit printsummary="yes" haltonfailure="yes">
+			
+		  <classpath refid="classpath.test"/>
+
+		  <formatter type="plain"/>
+
+		  <batchtest fork="yes" todir="${reports.tests}">
+		    <fileset dir="${sources}">
+		      <include name="**/*Test.java"/>
+		    </fileset>
+		  </batchtest>
+			
+		</junit>
+	</target>
+	
+</project>
